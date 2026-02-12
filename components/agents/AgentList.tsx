@@ -63,8 +63,7 @@ export function AgentList() {
               )}
             >
               <div className="relative">
-                <div className="w-8 h-8 rounded-full bg-secondary flex items-center justify-center text-xs font-medium"
-003e
+                <div className="w-8 h-8 rounded-full bg-secondary flex items-center justify-center text-xs font-medium">
                   {agent.name.charAt(0)}
                 </div>
                 <span
