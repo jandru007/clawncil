@@ -1,12 +1,38 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import { useAgentStore } from '@/stores/agents';
+import { useEffect, useState, useCallback } from 'react';
+import { supabase } from '@/lib/supabase';
+import { Agent } from '@/lib/types';
 import { cn } from '@/lib/utils';
 
 export function AgentList() {
-  const { agents, selectedAgent, fetchAgents, selectAgent, error, loading } = useAgentStore();
+  const [agents, setAgents] = useState<Agent[]>([]);
+  const [selectedAgent, setSelectedAgent] = useState<Agent | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [filter, setFilter] = useState('');
+
+  const fetchAgents = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      console.log('Fetching agents...');
+      const { data, error } = await supabase
+        .from('agents')
+        .select('*')
+        .order('created_at', { ascending: true });
+
+      console.log('Response:', { data, error });
+
+      if (error) throw error;
+      setAgents(data || []);
+    } catch (err) {
+      console.error('Fetch error:', err);
+      setError(err instanceof Error ? err.message : 'Failed to fetch');
+    } finally {
+      setLoading(false);
+    }
+  }, []);
 
   useEffect(() => {
     fetchAgents();
@@ -24,9 +50,13 @@ export function AgentList() {
           <span className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
             Agents ({agents.length})
           </span>
-          <button className="p-1.5 hover:bg-secondary rounded transition-colors">
+          <button 
+            onClick={fetchAgents}
+            className="p-1.5 hover:bg-secondary rounded transition-colors"
+            title="Refresh"
+          >
             <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
             </svg>
           </button>
         </div>
@@ -60,7 +90,7 @@ export function AgentList() {
           {filteredAgents.map((agent) => (
             <button
               key={agent.id}
-              onClick={() => selectAgent(agent)}
+              onClick={() => setSelectedAgent(agent)}
               className={cn(
                 "w-full flex items-center gap-3 px-3 py-2 rounded-lg transition-colors text-left",
                 selectedAgent?.id === agent.id
