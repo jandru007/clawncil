@@ -1,46 +1,34 @@
 'use client';
 
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useCallback } from 'react';
 import { supabase } from '@/lib/supabase';
-import { Agent } from '@/lib/types';
+import { useAgentContext } from '@/lib/agent-context';
 import { cn } from '@/lib/utils';
 
 export function AgentList() {
-  const [agents, setAgents] = useState<Agent[]>([]);
-  const [selectedAgent, setSelectedAgent] = useState<Agent | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [filter, setFilter] = useState('');
+  const { agents, selectedAgent, loading, error, setAgents, setSelectedAgent, setLoading, setError } = useAgentContext();
 
   const fetchAgents = useCallback(async () => {
     setLoading(true);
     setError(null);
     try {
-      console.log('Fetching agents...');
       const { data, error } = await supabase
         .from('agents')
         .select('*')
         .order('created_at', { ascending: true });
 
-      console.log('Response:', { data, error });
-
       if (error) throw error;
       setAgents(data || []);
     } catch (err) {
-      console.error('Fetch error:', err);
       setError(err instanceof Error ? err.message : 'Failed to fetch');
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [setAgents, setLoading, setError]);
 
   useEffect(() => {
     fetchAgents();
   }, [fetchAgents]);
-
-  const filteredAgents = agents.filter((a) =>
-    a.name.toLowerCase().includes(filter.toLowerCase())
-  );
 
   return (
     <div className="h-full flex flex-col">
@@ -60,34 +48,23 @@ export function AgentList() {
             </svg>
           </button>
         </div>
-
-        <input
-          type="text"
-          placeholder="Search agents..."
-          value={filter}
-          onChange={(e) => setFilter(e.target.value)}
-          className="w-full bg-secondary border-0 rounded px-3 py-1.5 text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-primary"
-        />
       </div>
 
-      {/* Error */}
       {error && (
         <div className="p-3 bg-red-500/10 border-b border-red-500/20">
           <p className="text-xs text-red-400">{error}</p>
         </div>
       )}
 
-      {/* Loading */}
       {loading && (
         <div className="p-4 text-center text-muted-foreground">
           <p className="text-sm">Loading agents...</p>
         </div>
       )}
 
-      {/* Agent List */}
       <div className="flex-1 overflow-auto custom-scrollbar">
         <div className="p-2 space-y-1">
-          {filteredAgents.map((agent) => (
+          {agents.map((agent) => (
             <button
               key={agent.id}
               onClick={() => setSelectedAgent(agent)}
@@ -111,7 +88,6 @@ export function AgentList() {
                   )}
                 />
               </div>
-
               <div className="flex-1 min-w-0">
                 <p className="text-sm font-medium truncate">{agent.name}</p>
                 <p className="text-xs text-muted-foreground truncate">{agent.model}</p>

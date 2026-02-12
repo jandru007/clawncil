@@ -2,10 +2,10 @@
 
 import { DashboardLayout } from "@/components/layout/DashboardLayout";
 import { ChatPanel } from "@/components/chat/ChatPanel";
-import { useAgentStore } from "@/stores/agents";
+import { useAgentContext } from "@/lib/agent-context";
 
 export default function Home() {
-  const { selectedAgent } = useAgentStore();
+  const { selectedAgent } = useAgentContext();
 
   return (
     <DashboardLayout>
