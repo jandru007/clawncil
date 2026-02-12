@@ -5,7 +5,7 @@ import { useAgentStore } from '@/stores/agents';
 import { cn } from '@/lib/utils';
 
 export function AgentList() {
-  const { agents, selectedAgent, fetchAgents, selectAgent } = useAgentStore();
+  const { agents, selectedAgent, fetchAgents, selectAgent, error, loading } = useAgentStore();
   const [filter, setFilter] = useState('');
 
   useEffect(() => {
@@ -39,6 +39,20 @@ export function AgentList() {
           className="w-full bg-secondary border-0 rounded px-3 py-1.5 text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-primary"
         />
       </div>
+
+      {/* Error */}
+      {error && (
+        <div className="p-3 bg-red-500/10 border-b border-red-500/20">
+          <p className="text-xs text-red-400">{error}</p>
+        </div>
+      )}
+
+      {/* Loading */}
+      {loading && (
+        <div className="p-4 text-center text-muted-foreground">
+          <p className="text-sm">Loading agents...</p>
+        </div>
+      )}
 
       {/* Agent List */}
       <div className="flex-1 overflow-auto custom-scrollbar">

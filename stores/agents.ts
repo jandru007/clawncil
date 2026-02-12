@@ -21,14 +21,18 @@ export const useAgentStore = create<AgentState>((set, get) => ({
   fetchAgents: async () => {
     set({ loading: true, error: null });
     try {
+      console.log('Fetching agents from Supabase...');
       const { data, error } = await supabase
         .from('agents')
         .select('*')
         .order('created_at', { ascending: true });
 
+      console.log('Supabase response:', { data, error });
+
       if (error) throw error;
       set({ agents: data || [], loading: false });
     } catch (err) {
+      console.error('Fetch error:', err);
       set({ error: err instanceof Error ? err.message : 'Failed to fetch agents', loading: false });
     }
   },
@@ -46,7 +50,6 @@ export const useAgentStore = create<AgentState>((set, get) => ({
 
       if (error) throw error;
 
-      // Update local state
       set((state) => ({
         agents: state.agents.map((a) =>
           a.id === id ? { ...a, status } : a
