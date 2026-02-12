@@ -1,12 +1,18 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { supabase } from '@/lib/supabase';
 
-export async function GET() {
+export async function GET(request: NextRequest) {
   try {
-    const { data, error } = await supabase
-      .from('tasks')
-      .select('*')
-      .order('created_at', { ascending: false });
+    const { searchParams } = new URL(request.url);
+    const projectId = searchParams.get('projectId');
+
+    let query = supabase.from('tasks').select('*').order('created_at', { ascending: false });
+    
+    if (projectId) {
+      query = query.eq('project_id', projectId);
+    }
+
+    const { data, error } = await query;
 
     if (error) throw error;
 
@@ -19,17 +25,22 @@ export async function GET() {
 
 export async function POST(request: NextRequest) {
   try {
-    const task = await request.json();
+    const { title, description, status, priority, assignee, tags, projectId } = await request.json();
+
+    if (!projectId) {
+      return NextResponse.json({ error: 'Project ID required' }, { status: 400 });
+    }
 
     const { data, error } = await supabase
       .from('tasks')
       .insert({
-        title: task.title,
-        description: task.description,
-        status: task.status,
-        priority: task.priority,
-        assignee: task.assignee,
-        tags: task.tags || [],
+        project_id: projectId,
+        title,
+        description,
+        status,
+        priority,
+        assignee,
+        tags: tags || [],
       })
       .select()
       .single();

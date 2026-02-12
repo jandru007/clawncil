@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useAgentContext } from '@/lib/agent-context';
+import { useProjectContext } from '@/lib/project-context';
 import { cn } from '@/lib/utils';
 
 interface Task {
@@ -24,18 +25,21 @@ const COLUMNS = [
 
 export function TasksTab() {
   const { agents } = useAgentContext();
+  const { selectedProject } = useProjectContext();
   const [tasks, setTasks] = useState<Task[]>([]);
   const [draggedTask, setDraggedTask] = useState<Task | null>(null);
   const [showModal, setShowModal] = useState(false);
   const [newTask, setNewTask] = useState({ title: '', description: '', priority: 'medium' as const });
 
-  // Load tasks from Supabase
+  // Load tasks from Supabase for selected project
   useEffect(() => {
-    fetch('/api/tasks')
+    if (!selectedProject) return;
+    
+    fetch(`/api/tasks?projectId=${selectedProject.id}`)
       .then(r => r.json())
       .then(data => setTasks(data.tasks || []))
       .catch(console.error);
-  }, []);
+  }, [selectedProject]);
 
   const handleDragStart = (task: Task) => {
     setDraggedTask(task);
@@ -62,7 +66,7 @@ export function TasksTab() {
   };
 
   const createTask = async () => {
-    if (!newTask.title) return;
+    if (!newTask.title || !selectedProject) return;
 
     const task: Task = {
       id: Date.now().toString(),
@@ -80,7 +84,7 @@ export function TasksTab() {
     await fetch('/api/tasks', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(task),
+      body: JSON.stringify({ ...task, projectId: selectedProject.id }),
     });
   };
 

@@ -1,5 +1,10 @@
 import { Dashboard } from "@/components/Dashboard";
+import { Providers } from "@/components/Providers";
 
 export default function Home() {
-  return <Dashboard />;
+  return (
+    <Providers>
+      <Dashboard />
+    </Providers>
+  );
 }
