@@ -1,6 +1,7 @@
 import { promises as fs } from 'fs';
 import { join } from 'path';
 import { homedir } from 'os';
+import { createContextMD } from './context';
 
 const OPENCLAW_DIR = join(homedir(), '.openclaw');
 const CONFIG_PATH = join(OPENCLAW_DIR, 'openclaw.json');
@@ -94,11 +95,18 @@ Agent in the Clawncil swarm for project management and execution.
 ## Notes
 Created: ${new Date().toISOString()}
 Model: ${model}
+Parent: ${parentId || 'None'}
 `;
   await fs.writeFile(join(workspaceDir, 'SOUL.md'), soulContent);
 
   // Initialize MEMORY.md
   await fs.writeFile(join(workspaceDir, 'MEMORY.md'), '# Memory\n\n');
+
+  // Create CONTEXT.md
+  await createContextMD(workspaceDir, 'Clawncil Swarm', [
+    `Agent ${name} created`,
+    `Model: ${model}`,
+  ]);
 }
 
 export async function updateAgentSOUL(agentId: string, bio: string, systemPrompt: string): Promise<void> {
