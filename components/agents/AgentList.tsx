@@ -1,26 +1,18 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
+import { useAgentStore } from '@/stores/agents';
 import { cn } from '@/lib/utils';
 
-interface Agent {
-  id: string;
-  name: string;
-  status: 'idle' | 'busy' | 'offline';
-  model: string;
-}
-
-const mockAgents: Agent[] = [
-  { id: '1', name: 'CEO Agent', status: 'idle', model: 'KimiK' },
-  { id: '2', name: 'CTO Agent', status: 'busy', model: 'KimiK' },
-  { id: '3', name: 'CPO Agent', status: 'idle', model: 'sonnet' },
-];
-
 export function AgentList() {
-  const [selectedAgent, setSelectedAgent] = useState<string | null>(null);
+  const { agents, selectedAgent, fetchAgents, selectAgent } = useAgentStore();
   const [filter, setFilter] = useState('');
 
-  const filteredAgents = mockAgents.filter((a) =>
+  useEffect(() => {
+    fetchAgents();
+  }, [fetchAgents]);
+
+  const filteredAgents = agents.filter((a) =>
     a.name.toLowerCase().includes(filter.toLowerCase())
   );
 
@@ -30,7 +22,7 @@ export function AgentList() {
       <div className="p-3 border-b border-border">
         <div className="flex items-center justify-between mb-3">
           <span className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
-            Agents
+            Agents ({agents.length})
           </span>
           <button className="p-1.5 hover:bg-secondary rounded transition-colors">
             <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -54,10 +46,10 @@ export function AgentList() {
           {filteredAgents.map((agent) => (
             <button
               key={agent.id}
-              onClick={() => setSelectedAgent(agent.id)}
+              onClick={() => selectAgent(agent)}
               className={cn(
                 "w-full flex items-center gap-3 px-3 py-2 rounded-lg transition-colors text-left",
-                selectedAgent === agent.id
+                selectedAgent?.id === agent.id
                   ? "bg-primary/10 border border-primary/20"
                   : "hover:bg-secondary"
               )}
@@ -78,20 +70,11 @@ export function AgentList() {
 
               <div className="flex-1 min-w-0">
                 <p className="text-sm font-medium truncate">{agent.name}</p>
-                <p className="text-xs text-muted-foreground">{agent.model}</p>
+                <p className="text-xs text-muted-foreground truncate">{agent.model}</p>
               </div>
             </button>
           ))}
         </div>
-      </div>
-
-      {/* Project Selector */}
-      <div className="p-3 border-t border-border">
-        <select className="w-full bg-secondary border-0 rounded px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-primary">
-          <option>Soul</option>
-          <option>Motion-Embed</option>
-          <option>+ New Project</option>
-        </select>
       </div>
     </div>
   );
